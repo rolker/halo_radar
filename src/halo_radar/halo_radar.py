@@ -285,14 +285,14 @@ class HaloRadar:
             self.lastAliveSent = now
             #print 'staying alive!'
             
-    def sendCommand(self, cmd, value, auto=False):
+    def sendCommand(self, cmd, value):
         if cmd == 'status':
             if value == 'transmit':
                 self.on()
             elif value == 'standby':
                 self.off()
             else:
-                print 'invalud status command'
+                print 'invalid status command'
         elif cmd == 'range':
             dm = int(float(value)*10)
             data = struct.pack('<HI',0xC103,dm)
@@ -305,13 +305,29 @@ class HaloRadar:
             data = struct.pack('<HH',0xc105,ba)
             self.sendCommandData(data)
         elif cmd == 'gain':
-            g = float(value)*255/100
-            data = struct.pack('<H4xB3xB',0xc106,auto,g)
-            self.sendCommandData(data)
+            try:
+                auto = False
+                g = 0
+                if value == 'auto':
+                    auto = True
+                else:
+                    g = float(value)*255/100
+                data = struct.pack('<H4xB3xB',0xc106,auto,g)
+                self.sendCommandData(data)
+            except ValueError:
+                pass
         elif cmd == 'sea_clutter':
-            sc = float(value)*255/100
-            data = struct.pack('<HB3xB3xB',0xc106,0x02,auto,sc)
-            self.sendCommandData(data)
+            try:
+                auto = False
+                sc = 0
+                if value == 'auto':
+                    auto = True
+                else:
+                    sc = float(value)*255/100
+                data = struct.pack('<HB3xB3xB',0xc106,0x02,auto,sc)
+                self.sendCommandData(data)
+            except ValueError:
+                pass
         elif cmd == 'rain_clutter':
             rc = float(value)*255/100
             data = struct.pack('<HB7xB',0xc106,0x04,rc)

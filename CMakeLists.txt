@@ -6,7 +6,6 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   marine_msgs
   rospy
-  roscpp
 )
 
 catkin_python_setup()
@@ -14,7 +13,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES range_and_bearing
-#  CATKIN_DEPENDS std_msgs sensor_msgs project11 roscpp
+   CATKIN_DEPENDS marine_msgs rospy
 #  DEPENDS system_lib
 )
 
