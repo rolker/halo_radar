@@ -20,90 +20,94 @@ class RadarPublisher:
         
         self.state_change_subscriber = rospy.Subscriber(prefix+'/change_state', KeyValue, self.state_change_callback)
 
+    def createEnumControl(self, name, value, label, enums):
+        rci = RadarControlItem()
+        rci.name = name
+        rci.value = value
+        rci.label = label
+        rci.type = RadarControlItem.CONTROL_TYPE_ENUM
+        for e in enums:
+            rci.enums.append(e)
+        return rci
+    
+    def createFloatControl(self, name, value, label, min_value = 0.0, max_value = 0.0):
+        rci = RadarControlItem()
+        rci.name = name
+        rci.value = str(value)
+        rci.label = label
+        rci.type = RadarControlItem.CONTROL_TYPE_FLOAT
+        rci.min_value = min_value
+        rci.max_value = max_value
+        return rci
+    
+    def createFloatWithAutoControl(self, name, value, label, min_value = 0.0, max_value = 0.0):
+        rci = RadarControlItem()
+        rci.name = name
+        rci.value = value
+        rci.label = label
+        rci.type = RadarControlItem.CONTROL_TYPE_FLOAT_WITH_AUTO
+        rci.min_value = min_value
+        rci.max_value = max_value
+        return rci
+
     def onState(self,state):
         rcs = RadarControlSet()
         if 'status' in state:
-            rci = RadarControlItem()
-            rci.name = 'status'
-            rci.value = state['status']
-            rci.label = 'Status'
-            rci.type = RadarControlItem.CONTROL_TYPE_ENUM
-            rci.enums.append('standby')
-            rci.enums.append('transmit')
-            rcs.items.append(rci)
+            rcs.items.append(self.createEnumControl('status',state['status'],'Status',('standby','transmit')))
         if 'range' in state:
-            rci = RadarControlItem()
-            rci.name = 'range'
-            rci.label = 'Range'
-            rci.type = RadarControlItem.CONTROL_TYPE_FLOAT
-            rci.value = str(state['range'])
-            rci.min_value = 25
-            rci.max_value = 75000
-            rcs.items.append(rci)
+            rcs.items.append(self.createFloatControl('range',state['range'],'Range',25,75000))
         if 'mode' in state:
-            rci = RadarControlItem()
-            rci.name = 'mode'
-            rci.value = state['mode']
-            rci.label = 'Mode'
-            rci.type = RadarControlItem.CONTROL_TYPE_ENUM
-            rci.enums.append('custom')
-            rci.enums.append('harbor')
-            rci.enums.append('offshore')
-            rci.enums.append('weather')
-            rci.enums.append('bird')
-            rcs.items.append(rci)
+            rcs.items.append(self.createEnumControl('mode',state['mode'],'Mode',('custom','harbor','offshore','weather','bird')))
         if 'gain' in state and 'gain_mode' in state:
-            rci = RadarControlItem()
-            rci.name = 'gain'
-            rci.label = 'Gain'
-            rci.type = RadarControlItem.CONTROL_TYPE_FLOAT_WITH_AUTO
             if state['gain_mode'] == 'auto':
-                rci.value = 'auto'
+                value = 'auto'
             else:
-                rci.value = str(state['gain'])
-            rci.min_value = 0
-            rci.max_value = 100
-            rcs.items.append(rci)
+                value = str(state['gain'])
+            rcs.items.append(self.createFloatWithAutoControl('gain',value,'Gain',0,100))
         if 'sea_clutter' in state and 'sea_clutter_mode' in state:
-            rci = RadarControlItem()
-            rci.name = 'sea_clutter'
-            rci.label = 'Sea clutter'
-            rci.type = RadarControlItem.CONTROL_TYPE_FLOAT_WITH_AUTO
             if state['sea_clutter_mode'] == 'auto':
-                rci.value = 'auto'
+                value = 'auto'
             else:
-                rci.value = str(state['sea_clutter'])
-            rci.min_value = 0
-            rci.max_value = 100
-            rcs.items.append(rci)
+                value = str(state['sea_clutter'])
+            rcs.items.append(self.createFloatWithAutoControl('sea_clutter',value,'Sea clutter',0,100))
         if 'auto_sea_clutter_nudge' in state:
-            rci = RadarControlItem()
-            rci.name = 'auto_sea_clutter_nudge'
-            rci.label = 'Auto sea clutter nudge'
-            rci.type = RadarControlItem.CONTROL_TYPE_FLOAT
-            rci.value = str(state['auto_sea_clutter_nudge'])
-            rci.min_value = -50
-            rci.max_value = 50
-            rcs.items.append(rci)
+            rcs.items.append(self.createFloatControl('auto_sea_clutter_nudge',state['auto_sea_clutter_nudge'],'Auto sea clutter nudge',-50,50))
         if 'sea_state' in state:
-            rci = RadarControlItem()
-            rci.name = 'sea_state'
-            rci.value = state['sea_state']
-            rci.label = 'Sea state'
-            rci.type = RadarControlItem.CONTROL_TYPE_ENUM
-            rci.enums.append('calm')
-            rci.enums.append('moderate')
-            rci.enums.append('rough')
-            rcs.items.append(rci)
+            rcs.items.append(self.createEnumControl('sea_state',state['sea_state'],'Sea state',('calm','moderate','rough')))
         if 'rain_clutter' in state:
-            rci = RadarControlItem()
-            rci.name = 'rain_clutter'
-            rci.label = 'Rain clutter'
-            rci.type = RadarControlItem.CONTROL_TYPE_FLOAT
-            rci.value = str(state['rain_clutter'])
-            rci.min_value = 0
-            rci.max_value = 100
-            rcs.items.append(rci)
+            rcs.items.append(self.createFloatControl('rain_clutter',state['rain_clutter'],'Rain clutter',0,100))
+        if 'noise_rejection' in state:
+            rcs.items.append(self.createEnumControl('noise_rejection',state['noise_rejection'],'Noise rejection',('off','low','medium','high')))
+        if 'target_expansion' in state:
+            rcs.items.append(self.createEnumControl('target_expansion',state['target_expansion'],'Target expansion',('off','low','medium','high')))
+        if 'interference_rejection' in state:
+            rcs.items.append(self.createEnumControl('interference_rejection',state['interference_rejection'],'Interf. rej',('off','low','medium','high')))
+        if 'target_separation' in state:
+            rcs.items.append(self.createEnumControl('target_separation',state['target_separation'],'Target separation',('off','low','medium','high')))
+        if 'scan_speed' in state:
+            rcs.items.append(self.createEnumControl('scan_speed',state['scan_speed'],'Fast scan',('off','medium','high')))
+        if 'doppler_mode' in state:
+            rcs.items.append(self.createEnumControl('doppler_mode',state['doppler_mode'],'VelocityTrack',('off','normal','approaching_only')))
+        if 'doppler_speed' in state:
+            rcs.items.append(self.createFloatControl('doppler_speed',state['doppler_speed'],'Speed Threshold',0.05,15.95))
+        if 'antenna_height' in state:
+            rcs.items.append(self.createFloatControl('antenna_height',state['antenna_height'],'Antenna height',0.0,30.175))
+        if 'bearing_alignment' in state:
+            rcs.items.append(self.createFloatControl('bearing_alignment',state['bearing_alignment'],'Bearing alignment',0,365))
+        if 'sidelobe_suppression' in state and 'sidelobe_suppression_mode' in state:
+            if state['sidelobe_suppression_mode'] == 'auto':
+                value = 'auto'
+            else:
+                value = str(state['sidelobe_suppression'])
+            rcs.items.append(self.createFloatWithAutoControl('sidelobe_suppression',value,'Sidelobe sup.',0,100))
+        if 'light' in state:
+            rcs.items.append(self.createEnumControl('light',state['light'],'Halo light',('off','low','medium','high')))
+        
+            
+        
+        
+        
+                             
         
             
 

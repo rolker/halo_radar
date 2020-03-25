@@ -196,10 +196,11 @@ class HaloRadar:
             pass
             
         elif id[0] == 0xC611:
+            self.detectChange(data)
             pass #heartbeat
         else:
-            pass
             print '\tid:',hex(id[0])
+            pass
 
         state_updated = False
         for k in new_state.keys():
@@ -333,9 +334,17 @@ class HaloRadar:
             data = struct.pack('<HB7xB',0xc106,0x04,rc)
             self.sendCommandData(data)
         elif cmd == 'sidelobe_suppression':
-            ss = float(value)*255/100
-            data = struct.pack('<HB3xB3xB',0xc106,0x05,auto,ss)
-            self.sendCommandData(data)
+            try:
+                auto = False
+                ss = 0
+                if value == 'auto':
+                    auto = True
+                else:
+                    ss = float(value)*255/100
+                data = struct.pack('<HB3xB3xB',0xc106,0x05,auto,ss)
+                self.sendCommandData(data)
+            except ValueError:
+                pass
         elif cmd == 'interference_rejection':
             try:
                 v = ('off','low','medium','high').index(value)
