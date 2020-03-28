@@ -102,14 +102,6 @@ class RadarPublisher:
             rcs.items.append(self.createFloatWithAutoControl('sidelobe_suppression',value,'Sidelobe sup.',0,100))
         if 'light' in state:
             rcs.items.append(self.createEnumControl('light',state['light'],'Halo light',('off','low','medium','high')))
-        
-            
-        
-        
-        
-                             
-        
-            
 
         self.state_pub.publish(rcs)
 
