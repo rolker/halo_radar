@@ -93,15 +93,15 @@ class RadarPublisher:
         if 'antenna_height' in state:
             rcs.items.append(self.createFloatControl('antenna_height',state['antenna_height'],'Antenna height',0.0,30.175))
         if 'bearing_alignment' in state:
-            rcs.items.append(self.createFloatControl('bearing_alignment',state['bearing_alignment'],'Bearing alignment',0,365))
+            rcs.items.append(self.createFloatControl('bearing_alignment',state['bearing_alignment'],'Bearing alignment',0,360))
         if 'sidelobe_suppression' in state and 'sidelobe_suppression_mode' in state:
             if state['sidelobe_suppression_mode'] == 'auto':
                 value = 'auto'
             else:
                 value = str(state['sidelobe_suppression'])
             rcs.items.append(self.createFloatWithAutoControl('sidelobe_suppression',value,'Sidelobe sup.',0,100))
-        if 'light' in state:
-            rcs.items.append(self.createEnumControl('light',state['light'],'Halo light',('off','low','medium','high')))
+        if 'lights' in state:
+            rcs.items.append(self.createEnumControl('lights',state['lights'],'Halo light',('off','low','medium','high')))
 
         self.state_pub.publish(rcs)
 
@@ -131,7 +131,7 @@ if __name__ == '__main__':
         print i
         for r in found_radars[1]:
             print '\t',r
-            radars.append(RadarPublisher('/base/radar/'+r['label'], halo_radar.halo_radar.HaloRadar(i,r['data'],r['send'],r['report'],r['label'])))
+            radars.append(RadarPublisher('radar/'+r['label'], halo_radar.halo_radar.HaloRadar(i,r['data'],r['send'],r['report'],r['label'])))
 
         #for r in radars:
             #r.radar.on()

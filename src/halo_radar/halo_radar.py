@@ -164,7 +164,7 @@ class HaloRadar:
             new_state['antenna_height'] = a_height[0]/1000.0
             
             halo_light = struct.unpack('B',data[19])
-            new_state['light'] = {0:'off',1:'low',2:'medium',3:'high'}[halo_light[0]]
+            new_state['lights'] = {0:'off',1:'low',2:'medium',3:'high'}[halo_light[0]]
 
         elif id[0] == 0xC406:
             pass
@@ -352,13 +352,6 @@ class HaloRadar:
                 self.sendCommandData(data)
             except ValueError:
                 pass
-        elif cmd == 'target_expansion':
-            try:
-                v = ('off','low','medium','high').index(value)
-                data = struct.pack('<HB',0xC109,v)
-                self.sendCommandData(data)
-            except ValueError:
-                pass
         elif cmd == 'sea_state':
             try:
                 v = ('calm','moderate','rough').index(value)
@@ -386,6 +379,13 @@ class HaloRadar:
             ascn = float(value)
             data = struct.pack('<HBbbB',0xC111,0x01,ascn,ascn,0x04)
             self.sendCommandData(data)
+        elif cmd == 'target_expansion':
+            try:
+                v = ('off','low','medium','high').index(value)
+                data = struct.pack('<HB',0xC112,v)
+                self.sendCommandData(data)
+            except ValueError:
+                pass
         elif cmd == 'noise_rejection':
             try:
                 v = ('off','low','medium','high').index(value)
@@ -415,7 +415,7 @@ class HaloRadar:
             mm = float(value)*1000
             data = struct.pack('<HII',0xC130,1,mm)
             self.sendCommandData(data)
-        elif cmd == 'light':
+        elif cmd == 'lights':
             try:
                 v = ('off','low','medium','high').index(value)
                 data = struct.pack('<HB',0xC131,v)
