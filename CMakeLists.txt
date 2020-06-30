@@ -28,6 +28,7 @@ set (SOURCES
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}

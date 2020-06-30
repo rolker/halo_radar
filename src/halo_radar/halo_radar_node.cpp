@@ -51,7 +51,7 @@ protected:
         createEnumControl("mode","Mode",modeEnums,rcs);
         createFloatWithAutoControl("gain","gain_mode","Gain",0,100,rcs);
         createFloatWithAutoControl("sea_clutter","sea_clutter_mode","Sea clutter",0,100,rcs);
-        createFloatControl("auto_sea_clutter_nudge","Auto sea clutter nudge",-50,50,rcs);
+        createFloatControl("auto_sea_clutter_nudge","Auto sea clut adj",-50,50,rcs);
         
         std::string seaStateEnums[] = {"calm","moderate","rough",""};
         
