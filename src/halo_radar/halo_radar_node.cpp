@@ -161,6 +161,8 @@ int main(int argc, char **argv)
   std::vector<std::shared_ptr<RosRadar> > radars;
   std::future<void> scanResult = std::async(std::launch::async, [&] {
     auto as = halo_radar::scan();
+    if(as.empty())
+      ROS_WARN_STREAM("No radars found!");
     for (auto a : as)
     {
       radars.push_back(std::shared_ptr<RosRadar>(new RosRadar(a)));
