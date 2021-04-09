@@ -125,8 +125,8 @@ std::vector<AddressSet> scan()
             int nbytes = recvfrom(listen_sock,in_data,1024,0,(sockaddr*)&from_addr,&from_addr_len);
             if(nbytes > 0)
             {
-                //std::cerr << nbytes << " bytes" << std::endl;
-                //std::cerr << "is it " << sizeof(RadarReport_01B2) << " bytes and start with b201?" << std::endl;
+                std::cerr << nbytes << " bytes" << std::endl;
+                std::cerr << "is it " << sizeof(RadarReport_b201) << " bytes and start with b201?" << std::endl;
                 RadarReport_b201* b201 =  reinterpret_cast<RadarReport_b201*>(in_data);
                 if(nbytes == sizeof(RadarReport_b201) && b201->id == 0xb201)
                 {
