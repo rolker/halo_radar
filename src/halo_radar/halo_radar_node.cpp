@@ -169,16 +169,19 @@ int main(int argc, char **argv)
   }
 
   std::future<void> scanResult = std::async(std::launch::async, [&] {
-    std::vector<halo_radar::AddressSet> as;
-    if(hostIPs.empty())
-      as = halo_radar::scan();
-    else
-      as = halo_radar::scan(hostIPs);
-    if(as.empty())
-      ROS_WARN_STREAM("No radars found!");
-    for (auto a : as)
+    while(radars.empty())
     {
-      radars.push_back(std::shared_ptr<RosRadar>(new RosRadar(a)));
+      std::vector<halo_radar::AddressSet> as;
+      if(hostIPs.empty())
+        as = halo_radar::scan();
+      else
+        as = halo_radar::scan(hostIPs);
+      if(as.empty())
+        ROS_WARN_STREAM("No radars found!");
+      for (auto a : as)
+      {
+        radars.push_back(std::shared_ptr<RosRadar>(new RosRadar(a)));
+      }
     }
   });
 
