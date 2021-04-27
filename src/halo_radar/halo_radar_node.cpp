@@ -159,8 +159,21 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "halo_radar");
   std::vector<std::shared_ptr<RosRadar> > radars;
+  std::vector<uint32_t> hostIPs;
+  if (ros::param::has("~hostIPs"))
+  {
+    std::vector<std::string> hostIPstrings;
+    ros::param::get("~hostIPs", hostIPstrings);
+    for (auto s: hostIPstrings)
+      hostIPs.push_back(halo_radar::ipAddressFromString(s));
+  }
+
   std::future<void> scanResult = std::async(std::launch::async, [&] {
-    auto as = halo_radar::scan();
+    std::vector<halo_radar::AddressSet> as;
+    if(hostIPs.empty())
+      as = halo_radar::scan();
+    else
+      as = halo_radar::scan(hostIPs);
     if(as.empty())
       ROS_WARN_STREAM("No radars found!");
     for (auto a : as)

@@ -2,6 +2,7 @@
 
 #include <net/if.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sstream>
 #include <cstring>
 #include <iostream>
@@ -34,10 +35,20 @@ std::string ipAddressToString(uint32_t a)
     return ret.str();
 }
 
+uint32_t ipAddressFromString(const std::string &a)
+{
+    return inet_addr(a.c_str());
+}
+
 std::vector<AddressSet> scan()
 {
+    return scan(getLocalAddresses());
+}
+
+std::vector<AddressSet> scan(const std::vector<uint32_t> & addresses)
+{
     std::vector<AddressSet> ret;
-    for(auto a: getLocalAddresses())
+    for(auto a: addresses)
     {
         std::cerr << "local interface:" << ipAddressToString(a) << std::endl;
         int listen_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

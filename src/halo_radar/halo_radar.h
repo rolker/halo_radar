@@ -20,6 +20,7 @@ bool validInterface(ifaddrs const *i);
 std::vector<uint32_t> getLocalAddresses();
 
 std::string ipAddressToString(uint32_t a);
+uint32_t ipAddressFromString(const std::string &a);
 
 struct AddressSet
 {
@@ -33,6 +34,7 @@ struct AddressSet
 };
 
 std::vector <AddressSet> scan();
+std::vector <AddressSet> scan(const std::vector<uint32_t> &addresses);
 
 struct Scanline
 {
