@@ -249,6 +249,65 @@ struct AntennaHeightCmd
     AntennaHeightCmd(uint32_t h):cmd(0xc130),one(1),height_mm(h){}
 };
 
+struct HaloHeadingPacket
+{
+  char marker[4];    // 4 bytes containing 'NKOE'
+  uint8_t u00[4];    // 4 bytes containing '00 01 90 02'
+  uint16_t counter;  // 2 byte counter incrementing by 1 every transmission, in BigEndian
+  // 10
+  uint8_t u01[26];  // 25 bytes of unknown stuff that doesn't seem to vary
+  // 36
+  uint8_t u02[2];  // 2 bytes containing '12 f1'
+  uint8_t u03[2];  // 2 bytes containing '01 00'
+  // 40
+  uint64_t epoch;  // 8 bytes containing millis since 1970
+  // 48
+  uint64_t u04;  // 8 bytes containing 2
+  // 56
+  uint32_t u05a;  // 4 bytes containing some fixed data, could be position?
+  // 60
+  uint32_t u05b;  // 4 bytes containing some fixed data, could be position?
+  // 64
+  uint8_t u06[1];  // 1 byte containing counter or 0xff
+  // 65
+  uint16_t heading;  // 2 bytes containing heading
+  // 67
+  uint8_t u07[5];  // 5 bytes containing varying unknown data
+  // 72
+};
+
+struct HaloMysteryPacket
+{
+  char marker[4];    // 4 bytes containing 'NKOE'
+  uint8_t u00[4];    // 4 bytes containing '00 01 90 02'
+  uint16_t counter;  // 2 byte counter incrementing by 1 every transmission, in BigEndian
+  // 10
+  uint8_t u01[26];  // 25 bytes of unknown stuff that doesn't seem to vary
+  // 36
+  uint8_t u02[2];  // 2 bytes containing '02 f8'...
+  uint8_t u03[2];  // 2 bytes containing '01 00'
+  // 40
+  uint64_t epoch;  // 8 bytes containing millis since 1970
+  // 48
+  uint64_t u04;  // 8 bytes containing 2
+  // 56
+  uint32_t u05a;  // 4 bytes containing some fixed data, could be position?
+  // 60
+  uint32_t u05b;  // 4 bytes containing some fixed data, could be position?
+  // 64
+  uint8_t u06[1];  // 1 byte containing counter or 0xff
+  // 65
+  uint8_t u07[1];  // 1 byte containing 0xfc
+  // 66
+  uint16_t mystery1;  // 2 bytes containing some varying field
+  // 68
+  uint16_t mystery2;  // 2 bytes containing some varying field
+  // 70
+  uint8_t u08[2];  // 2 bytes containg 0xff 0xff
+  // 72
+};
+
+
 #pragma pack(pop)
     
 } // namespace

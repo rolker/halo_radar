@@ -1,9 +1,11 @@
 #include <ros/ros.h>
+#include <tf2/utils.h>
 #include <iostream>
 #include "halo_radar.h"
 #include "marine_msgs/KeyValue.h"
 #include "marine_msgs/RadarSectorStamped.h"
 #include "marine_msgs/RadarControlSet.h"
+#include "nav_msgs/Odometry.h"
 #include <future>
 
 class RosRadar : public halo_radar::Radar
@@ -155,6 +157,18 @@ class RosRadar : public halo_radar::Radar
   double m_rangeCorrectionFactor = 1.024;
 };
 
+std::shared_ptr<halo_radar::HeadingSender> headingSender;
+
+void odometryCallback(const nav_msgs::Odometry::ConstPtr msg)
+{
+  if(headingSender)
+  {
+    double heading = 90.0-180.0*tf2::getYaw(msg->pose.pose.orientation)/M_PI;
+    headingSender->setHeading(heading);
+  }
+    
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "halo_radar");
@@ -181,6 +195,8 @@ int main(int argc, char **argv)
       for (auto a : as)
       {
         radars.push_back(std::shared_ptr<RosRadar>(new RosRadar(a)));
+        if(!headingSender)
+          headingSender = std::shared_ptr<halo_radar::HeadingSender>(new halo_radar::HeadingSender(a.interface));
       }
     }
   });

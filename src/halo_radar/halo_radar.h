@@ -79,8 +79,68 @@ private:
     bool m_exitFlag;
     std::mutex m_exitFlagMutex;
     
-    
     std::chrono::system_clock::time_point m_lastHeartbeat;
+};
+
+class HeadingSender
+{
+public:
+    HeadingSender(uint32_t bindAddress);
+    ~HeadingSender();
+    void setHeading(double heading);
+
+private:
+    void senderThread();
+
+private:
+    int m_socket = 0;
+    sockaddr_in m_sendAddress;
+    double m_heading = 0.0;
+    std::mutex m_headingMutex;
+    std::thread m_senderThread;
+    bool m_exitFlag = false;
+    std::mutex m_exitFlagMutex;
+
+    uint16_t m_counter = 0;
+
+    std::chrono::system_clock::time_point m_lastHeadingSent;
+    std::chrono::milliseconds m_headingSendInterval = std::chrono::milliseconds(100);
+    std::chrono::system_clock::time_point m_lastMysterySent;
+    std::chrono::milliseconds m_mysterySendInterval = std::chrono::milliseconds(250);
+
+    HaloHeadingPacket m_headingPacket = {
+        {'N', 'K', 'O', 'E'},  // marker
+        {0, 1, 0x90, 0x02},    // u00 bytes containing '00 01 90 02'
+        0,                     // counter
+        {0, 0, 0x10, 0, 0, 0x14, 0, 0, 4, 0, 0, 0, 0, 0, 5, 0x3C, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x20},  // u01
+        {0x12, 0xf1},                                                                                // u02
+        {0x01, 0x00},                                                                                // u03
+        0,                                                                                           // epoch
+        2,                                                                                           // u04
+        0,                                                                                           // u05a, likely position
+        0,                                                                                           // u05b, likely position
+        {0xff},                                                                                      // u06
+        0,                                                                                           // heading
+        {0xff, 0x7f, 0x79, 0xf8, 0xfc}                                                               // u07
+    };
+
+    HaloMysteryPacket m_mysteryPacket  = {
+        {'N', 'K', 'O', 'E'},  // marker
+        {0, 1, 0x90, 0x02},    // u00 bytes containing '00 01 90 02'
+        0,                     // counter
+        {0, 0, 0x10, 0, 0, 0x14, 0, 0, 4, 0, 0, 0, 0, 0, 5, 0x3C, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x20},  // u01
+        {0x02, 0xf8},                                                                                // u02
+        {0x01, 0x00},                                                                                // u03
+        0,                                                                                           // epoch
+        2,                                                                                           // u04
+        0,                                                                                           // u05a, likely position
+        0,                                                                                           // u05b, likely position
+        {0xff},                                                                                      // u06
+        {0xfc},                                                                                      // u07
+        0,                                                                                           // mystery1
+        0,                                                                                           // mystery2
+        {0xff, 0xff}                                                                                 // u08
+    };
 };
 
 } // namespace halo_radar

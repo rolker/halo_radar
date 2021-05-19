@@ -252,7 +252,7 @@ int Radar::createListenerSocket(uint32_t interface, uint32_t mcast_address, uint
 void Radar::dataThread()
 {
     int data_socket = createListenerSocket(m_addresses.interface,
- m_addresses.data.address, m_addresses.data.port);
+    m_addresses.data.address, m_addresses.data.port);
     if(data_socket < 0)
     {
         perror("data socket");
@@ -304,7 +304,7 @@ void Radar::dataThread()
 void Radar::reportThread()
 {
     int report_socket = createListenerSocket(m_addresses.interface,
- m_addresses.report.address, m_addresses.report.port);
+    m_addresses.report.address, m_addresses.report.port);
     if(report_socket < 0)
     {
         perror("report socket");
@@ -750,6 +750,97 @@ void Radar::sendCommand(std::string const &key, std::string const &value)
     
     
     
+}
+
+HeadingSender::HeadingSender(uint32_t bindAddress)
+{
+    m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    int one = 1;
+    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&one, sizeof(one)))
+    {
+        perror("HeadingSender reuse");
+        close(m_socket);
+        m_socket = 0;
+        return;
+    }
+
+    sockaddr_in address;
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = bindAddress;
+
+    if(bind(m_socket, (sockaddr *)&address, sizeof(address)) < 0)
+    {
+        perror("HeadingSender bind");
+        close(m_socket);
+        m_socket = 0;
+        return;
+    }
+
+    memset(&m_sendAddress, 0, sizeof(m_sendAddress));
+    m_sendAddress.sin_family = AF_INET;
+    uint8_t address_bytes[] = {239,238,55,73};
+    m_sendAddress.sin_addr.s_addr = *reinterpret_cast<uint32_t*>(address_bytes);
+    uint16_t port=7527;
+    m_sendAddress.sin_port = htons(port);
+
+    m_senderThread = std::thread(&HeadingSender::senderThread,this);
+}
+
+HeadingSender::~HeadingSender()
+{
+    {
+        const std::lock_guard<std::mutex> lock(m_exitFlagMutex);
+        m_exitFlag = true;
+    }
+    m_senderThread.join();
+}
+
+void HeadingSender::senderThread()
+{
+    while(true)
+    {
+        {
+            const std::lock_guard<std::mutex> lock(m_exitFlagMutex);
+            if(m_exitFlag)
+                break;
+        }   
+        
+        auto now = std::chrono::system_clock::now();
+
+        if (now-m_lastHeadingSent > m_headingSendInterval)
+        {
+            m_counter++;
+            m_headingPacket.counter = m_counter;
+            m_headingPacket.epoch = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+            {
+                const std::lock_guard<std::mutex> lock(m_headingMutex);
+                m_headingPacket.heading = (uint16_t)(m_heading * 63488.0 / 360.0);
+            }
+            sendto(m_socket, &m_headingPacket, sizeof(m_headingPacket), 0, (sockaddr*)&m_sendAddress, sizeof(m_sendAddress));
+            m_lastHeadingSent = now;
+        }
+        if (now-m_lastMysterySent > m_mysterySendInterval)
+        {
+            m_counter++;
+            m_mysteryPacket.counter = m_counter;
+            m_mysteryPacket.epoch = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+            m_mysteryPacket.mystery1 = 0;
+            m_mysteryPacket.mystery2 = 0;
+            sendto(m_socket, &m_mysteryPacket, sizeof(m_mysteryPacket), 0, (sockaddr*)&m_sendAddress, sizeof(m_sendAddress));
+            m_lastMysterySent = now;
+        }
+        auto sleepTime = min(m_lastHeadingSent+m_headingSendInterval-now, m_lastMysterySent+m_mysterySendInterval-now);
+        std::this_thread::sleep_for(sleepTime);
+        
+    }
+}
+
+void HeadingSender::setHeading(double heading)
+{
+    const std::lock_guard<std::mutex> lock(m_headingMutex);
+    m_heading = heading; 
 }
 
 } // namespace halo_radar
