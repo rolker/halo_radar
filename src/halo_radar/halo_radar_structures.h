@@ -57,6 +57,11 @@ struct RawScanline
   uint8_t data[1024 / 2];
 };                         
 
+// notes 
+// velocity track off: u00: 17408 u02: 2147483648 u03: 2684354560
+//             normal: u00: 17408 u02: 2147483648 u03: 2684354560
+//      approach only: u00: 17408 u02: 2147483648 u03: 2684354560
+
 struct RawSector {
   uint8_t stuff[5];
   uint8_t scanline_count;

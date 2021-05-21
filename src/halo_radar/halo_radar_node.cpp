@@ -20,6 +20,7 @@ class RosRadar : public halo_radar::Radar
         n.subscribe("radar/" + addresses.label + "/change_state", 10, &RosRadar::stateChangeCallback, this);
     m_heartbeatTimer = n.createTimer(ros::Duration(1.0), &RosRadar::hbTimerCallback, this);
     m_rangeCorrectionFactor = n.param("range_correction_factor", m_rangeCorrectionFactor);
+    ros::param::param<std::string>("~frameId", m_frame_id, m_frame_id);
 
     startThreads();
   }
@@ -29,7 +30,7 @@ class RosRadar : public halo_radar::Radar
   {
     marine_msgs::RadarSectorStamped rss;
     rss.header.stamp = ros::Time::now();
-    rss.header.frame_id = "radar";
+    rss.header.frame_id = m_frame_id;
     for (auto sl : scanlines)
     {
       marine_msgs::RadarScanline rs;
@@ -155,6 +156,7 @@ class RosRadar : public halo_radar::Radar
   ros::Timer m_heartbeatTimer;
 
   double m_rangeCorrectionFactor = 1.024;
+  std::string m_frame_id = "radar";
 };
 
 std::shared_ptr<halo_radar::HeadingSender> headingSender;
