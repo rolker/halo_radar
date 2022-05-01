@@ -21,9 +21,12 @@ std::vector<uint32_t> getLocalAddresses()
     std::vector<uint32_t> ret;
     ifaddrs *addr_list;
     if (!getifaddrs(&addr_list))
+    {
         for (ifaddrs * addr = addr_list; addr; addr = addr->ifa_next)
             if(validInterface(addr))
                 ret.push_back(((sockaddr_in *)(addr->ifa_addr))->sin_addr.s_addr);
+        freeifaddrs(addr_list);
+    }
     return ret;
 }
 
