@@ -2,9 +2,9 @@
 #include <tf2/utils.h>
 #include <iostream>
 #include "halo_radar.h"
-#include "marine_msgs/KeyValue.h"
-#include "marine_msgs/RadarSectorStamped.h"
-#include "marine_msgs/RadarControlSet.h"
+#include "marine_sensor_msgs/RadarSector.h"
+#include "marine_sensor_msgs/RadarControlSet.h"
+#include "marine_sensor_msgs/RadarControlValue.h"
 #include "nav_msgs/Odometry.h"
 #include <future>
 
@@ -14,8 +14,8 @@ class RosRadar : public halo_radar::Radar
   RosRadar(halo_radar::AddressSet const &addresses) : halo_radar::Radar(addresses)
   {
     ros::NodeHandle n;
-    m_data_pub = n.advertise<marine_msgs::RadarSectorStamped>("radar/" + addresses.label + "/data", 10);
-    m_state_pub = n.advertise<marine_msgs::RadarControlSet>("radar/" + addresses.label + "/state", 10);
+    m_data_pub = n.advertise<marine_sensor_msgs::RadarSector>("radar/" + addresses.label + "/data", 10);
+    m_state_pub = n.advertise<marine_sensor_msgs::RadarControlSet>("radar/" + addresses.label + "/state", 10);
     m_state_change_sub =
         n.subscribe("radar/" + addresses.label + "/change_state", 10, &RosRadar::stateChangeCallback, this);
     m_heartbeatTimer = n.createTimer(ros::Duration(1.0), &RosRadar::hbTimerCallback, this);
@@ -28,24 +28,24 @@ class RosRadar : public halo_radar::Radar
  protected:
   void processData(std::vector<halo_radar::Scanline> const &scanlines) override
   {
-    marine_msgs::RadarSectorStamped rss;
-    rss.header.stamp = ros::Time::now();
-    rss.header.frame_id = m_frame_id;
+    marine_sensor_msgs::RadarSector rs;
+    rs.header.stamp = ros::Time::now();
+    rs.header.frame_id = m_frame_id;
     for (auto sl : scanlines)
     {
-      marine_msgs::RadarScanline rs;
-      rs.angle = sl.angle;
-      rs.range = m_rangeCorrectionFactor * sl.range;
+      marine_sensor_msgs::RadarScanline rsl;
+      rsl.angle = 2.0*M_PI*(360-sl.angle)/360.0;
+      rsl.range = m_rangeCorrectionFactor * sl.range;
       for (auto i : sl.intensities)
-        rs.intensities.push_back(i);
-      rss.sector.scanlines.push_back(rs);
+        rsl.intensities.push_back(i);
+      rs.scanlines.push_back(rsl);
     }
-    m_data_pub.publish(rss);
+    m_data_pub.publish(rs);
   }
 
   void stateUpdated() override
   {
-    marine_msgs::RadarControlSet rcs;
+    marine_sensor_msgs::RadarControlSet rcs;
 
     std::string statusEnums[] = {"standby", "transmit", ""};
 
@@ -88,9 +88,9 @@ class RosRadar : public halo_radar::Radar
   }
 
  private:
-  void stateChangeCallback(const marine_msgs::KeyValue::ConstPtr &kv)
+  void stateChangeCallback(const marine_sensor_msgs::RadarControlValue::ConstPtr &cv)
   {
-    sendCommand(kv->key, kv->value);
+    sendCommand(cv->key, cv->value);
   }
 
   void hbTimerCallback(const ros::TimerEvent &e)
@@ -100,15 +100,15 @@ class RosRadar : public halo_radar::Radar
   }
 
   void createEnumControl(std::string const &name, std::string const &label, std::string const enums[],
-                         marine_msgs::RadarControlSet &rcs)
+                         marine_sensor_msgs::RadarControlSet &rcs)
   {
     if (m_state.find(name) != m_state.end())
     {
-      marine_msgs::RadarControlItem rci;
+      marine_sensor_msgs::RadarControlItem rci;
       rci.name = name;
       rci.value = m_state[name];
       rci.label = label;
-      rci.type = marine_msgs::RadarControlItem::CONTROL_TYPE_ENUM;
+      rci.type = marine_sensor_msgs::RadarControlItem::CONTROL_TYPE_ENUM;
       for (int i = 0; !enums[i].empty(); i++)
         rci.enums.push_back(enums[i]);
       rcs.items.push_back(rci);
@@ -116,15 +116,15 @@ class RosRadar : public halo_radar::Radar
   }
 
   void createFloatControl(std::string const &name, std::string const &label, float min_value, float max_value,
-                          marine_msgs::RadarControlSet &rcs)
+                          marine_sensor_msgs::RadarControlSet &rcs)
   {
     if (m_state.find(name) != m_state.end())
     {
-      marine_msgs::RadarControlItem rci;
+      marine_sensor_msgs::RadarControlItem rci;
       rci.name = name;
       rci.value = m_state[name];
       rci.label = label;
-      rci.type = marine_msgs::RadarControlItem::CONTROL_TYPE_FLOAT;
+      rci.type = marine_sensor_msgs::RadarControlItem::CONTROL_TYPE_FLOAT;
       rci.min_value = min_value;
       rci.max_value = max_value;
       rcs.items.push_back(rci);
@@ -132,18 +132,18 @@ class RosRadar : public halo_radar::Radar
   }
 
   void createFloatWithAutoControl(std::string const &name, std::string const &auto_name, std::string const &label,
-                                  float min_value, float max_value, marine_msgs::RadarControlSet &rcs)
+                                  float min_value, float max_value, marine_sensor_msgs::RadarControlSet &rcs)
   {
     if (m_state.find(name) != m_state.end() && m_state.find(auto_name) != m_state.end())
     {
-      marine_msgs::RadarControlItem rci;
+      marine_sensor_msgs::RadarControlItem rci;
       rci.name = name;
       std::string value = m_state[name];
       if (m_state[auto_name] == "auto")
         value = "auto";
       rci.value = value;
       rci.label = label;
-      rci.type = marine_msgs::RadarControlItem::CONTROL_TYPE_FLOAT_WITH_AUTO;
+      rci.type = marine_sensor_msgs::RadarControlItem::CONTROL_TYPE_FLOAT_WITH_AUTO;
       rci.min_value = min_value;
       rci.max_value = max_value;
       rcs.items.push_back(rci);

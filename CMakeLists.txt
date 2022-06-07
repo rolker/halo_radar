@@ -5,13 +5,13 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
     roscpp
-    marine_msgs
+    marine_sensor_msgs
 )
 
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES 
-   CATKIN_DEPENDS marine_msgs
+   CATKIN_DEPENDS marine_sensor_msgs
 #  DEPENDS system_lib
 )
 
