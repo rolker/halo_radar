@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import socket
 import sys
@@ -8,7 +8,7 @@ port = 6878
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind(('',port))
-s.settimeout(1.0)
+s.settimeout(2.0)
 
 while True:
   s.sendto(bytearray.fromhex('01b1'), (address,port))
