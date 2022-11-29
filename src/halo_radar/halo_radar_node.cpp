@@ -28,17 +28,23 @@ class RosRadar : public halo_radar::Radar
  protected:
   void processData(std::vector<halo_radar::Scanline> const &scanlines) override
   {
+    if(scanlines.empty())
+      return;
     marine_sensor_msgs::RadarSector rs;
     rs.header.stamp = ros::Time::now();
     rs.header.frame_id = m_frame_id;
+    rs.angle_min = 2.0*M_PI*(360-scanlines.front().angle)/360.0;
+    rs.angle_max = 2.0*M_PI*(360-scanlines.back().angle)/360.0;
+    if(scanlines.size() > 1)
+      rs.angle_increment = (rs.angle_max-rs.angle_min)/double(scanlines.size()-1);
+    rs.range_min = 0.0;
+    rs.range_max = scanlines.front().range;
     for (auto sl : scanlines)
     {
-      marine_sensor_msgs::RadarScanline rsl;
-      rsl.angle = 2.0*M_PI*(360-sl.angle)/360.0;
-      rsl.range = m_rangeCorrectionFactor * sl.range;
+      marine_sensor_msgs::RadarEcho echo;
       for (auto i : sl.intensities)
-        rsl.intensities.push_back(i);
-      rs.scanlines.push_back(rsl);
+        echo.echoes.push_back(i/15.0); // 4 bit int to float
+      rs.intensities.push_back(echo);
     }
     m_data_pub.publish(rs);
   }
