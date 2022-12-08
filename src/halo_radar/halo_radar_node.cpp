@@ -36,7 +36,13 @@ class RosRadar : public halo_radar::Radar
     rs.angle_min = 2.0*M_PI*(360-scanlines.front().angle)/360.0;
     rs.angle_max = 2.0*M_PI*(360-scanlines.back().angle)/360.0;
     if(scanlines.size() > 1)
-      rs.angle_increment = (rs.angle_max-rs.angle_min)/double(scanlines.size()-1);
+    {
+      double angle_max = rs.angle_max;
+      if (angle_max > rs.angle_min && rs.angle_max-rs.angle_min > M_PI) // have we looped around (also make sure angle are decreasing)
+        angle_max -= 2.0*M_PI;
+      rs.angle_increment = (angle_max-rs.angle_min)/double(scanlines.size()-1);
+
+    }
     rs.range_min = 0.0;
     rs.range_max = scanlines.front().range;
     for (auto sl : scanlines)
