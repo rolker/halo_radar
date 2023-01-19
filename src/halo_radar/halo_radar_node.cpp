@@ -3,8 +3,8 @@
 #include <iostream>
 #include "halo_radar.h"
 #include "marine_sensor_msgs/RadarSector.h"
-#include "marine_sensor_msgs/RadarControlSet.h"
-#include "marine_sensor_msgs/RadarControlValue.h"
+#include "marine_radar_control_msgs/RadarControlSet.h"
+#include "marine_radar_control_msgs/RadarControlValue.h"
 #include "nav_msgs/Odometry.h"
 #include <future>
 
@@ -15,7 +15,7 @@ class RosRadar : public halo_radar::Radar
   {
     ros::NodeHandle n;
     m_data_pub = n.advertise<marine_sensor_msgs::RadarSector>("radar/" + addresses.label + "/data", 10);
-    m_state_pub = n.advertise<marine_sensor_msgs::RadarControlSet>("radar/" + addresses.label + "/state", 10);
+    m_state_pub = n.advertise<marine_radar_control_msgs::RadarControlSet>("radar/" + addresses.label + "/state", 10);
     m_state_change_sub =
         n.subscribe("radar/" + addresses.label + "/change_state", 10, &RosRadar::stateChangeCallback, this);
     m_heartbeatTimer = n.createTimer(ros::Duration(1.0), &RosRadar::hbTimerCallback, this);
@@ -57,7 +57,7 @@ class RosRadar : public halo_radar::Radar
 
   void stateUpdated() override
   {
-    marine_sensor_msgs::RadarControlSet rcs;
+    marine_radar_control_msgs::RadarControlSet rcs;
 
     std::string statusEnums[] = {"standby", "transmit", ""};
 
@@ -100,7 +100,7 @@ class RosRadar : public halo_radar::Radar
   }
 
  private:
-  void stateChangeCallback(const marine_sensor_msgs::RadarControlValue::ConstPtr &cv)
+  void stateChangeCallback(const marine_radar_control_msgs::RadarControlValue::ConstPtr &cv)
   {
     sendCommand(cv->key, cv->value);
   }
@@ -112,15 +112,15 @@ class RosRadar : public halo_radar::Radar
   }
 
   void createEnumControl(std::string const &name, std::string const &label, std::string const enums[],
-                         marine_sensor_msgs::RadarControlSet &rcs)
+                         marine_radar_control_msgs::RadarControlSet &rcs)
   {
     if (m_state.find(name) != m_state.end())
     {
-      marine_sensor_msgs::RadarControlItem rci;
+      marine_radar_control_msgs::RadarControlItem rci;
       rci.name = name;
       rci.value = m_state[name];
       rci.label = label;
-      rci.type = marine_sensor_msgs::RadarControlItem::CONTROL_TYPE_ENUM;
+      rci.type = marine_radar_control_msgs::RadarControlItem::CONTROL_TYPE_ENUM;
       for (int i = 0; !enums[i].empty(); i++)
         rci.enums.push_back(enums[i]);
       rcs.items.push_back(rci);
@@ -128,15 +128,15 @@ class RosRadar : public halo_radar::Radar
   }
 
   void createFloatControl(std::string const &name, std::string const &label, float min_value, float max_value,
-                          marine_sensor_msgs::RadarControlSet &rcs)
+                          marine_radar_control_msgs::RadarControlSet &rcs)
   {
     if (m_state.find(name) != m_state.end())
     {
-      marine_sensor_msgs::RadarControlItem rci;
+      marine_radar_control_msgs::RadarControlItem rci;
       rci.name = name;
       rci.value = m_state[name];
       rci.label = label;
-      rci.type = marine_sensor_msgs::RadarControlItem::CONTROL_TYPE_FLOAT;
+      rci.type = marine_radar_control_msgs::RadarControlItem::CONTROL_TYPE_FLOAT;
       rci.min_value = min_value;
       rci.max_value = max_value;
       rcs.items.push_back(rci);
@@ -144,18 +144,18 @@ class RosRadar : public halo_radar::Radar
   }
 
   void createFloatWithAutoControl(std::string const &name, std::string const &auto_name, std::string const &label,
-                                  float min_value, float max_value, marine_sensor_msgs::RadarControlSet &rcs)
+                                  float min_value, float max_value, marine_radar_control_msgs::RadarControlSet &rcs)
   {
     if (m_state.find(name) != m_state.end() && m_state.find(auto_name) != m_state.end())
     {
-      marine_sensor_msgs::RadarControlItem rci;
+      marine_radar_control_msgs::RadarControlItem rci;
       rci.name = name;
       std::string value = m_state[name];
       if (m_state[auto_name] == "auto")
         value = "auto";
       rci.value = value;
       rci.label = label;
-      rci.type = marine_sensor_msgs::RadarControlItem::CONTROL_TYPE_FLOAT_WITH_AUTO;
+      rci.type = marine_radar_control_msgs::RadarControlItem::CONTROL_TYPE_FLOAT_WITH_AUTO;
       rci.min_value = min_value;
       rci.max_value = max_value;
       rcs.items.push_back(rci);

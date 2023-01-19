@@ -4,14 +4,15 @@ project(halo_radar)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-    roscpp
+    marine_radar_control_msgs
     marine_sensor_msgs
+    roscpp
 )
 
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES 
-   CATKIN_DEPENDS marine_sensor_msgs
+   CATKIN_DEPENDS marine_radar_control_msgs marine_sensor_msgs
 #  DEPENDS system_lib
 )
 
