@@ -7,6 +7,7 @@
 #include "marine_radar_control_msgs/RadarControlValue.h"
 #include "nav_msgs/Odometry.h"
 #include <future>
+#include "angular_speed_estimator.h"
 
 class RosRadar : public halo_radar::Radar
 {
@@ -51,6 +52,19 @@ class RosRadar : public halo_radar::Radar
         echo.echoes.push_back(i/15.0); // 4 bit int to float
       rs.intensities.push_back(echo);
     }
+
+    auto angular_speed = m_estimator.update(rs.header.stamp,  rs.angle_start);
+    double scan_time = 0.0;
+    if(angular_speed != 0.0)
+      scan_time = 2*M_PI/fabs(angular_speed);
+
+    rs.scan_time = ros::Duration(scan_time);
+
+    double time_increment = 0.0;
+    if (scan_time > 0)
+      time_increment = std::abs(rs.angle_increment)/scan_time;
+    rs.time_increment =  ros::Duration(time_increment);
+
     m_data_pub.publish(rs);
   }
 
@@ -168,6 +182,8 @@ class RosRadar : public halo_radar::Radar
 
   double m_rangeCorrectionFactor = 1.024;
   std::string m_frame_id = "radar";
+
+  AngularSpeedEstimator m_estimator;
 };
 
 std::shared_ptr<halo_radar::HeadingSender> headingSender;
