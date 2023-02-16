@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
   outbag.open(argv[2], rosbag::bagmode::Write);
   outbag.setCompression(rosbag::compression::LZ4);
 
-  AngularSpeedEstimator estimator;
+  std::map<std::string, AngularSpeedEstimator> estimators;
 
 
   for(const auto m: rosbag::View(inbag))
@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     auto sector = m.instantiate<marine_sensor_msgs::RadarSector>();
     if(sector != nullptr)
     {
-      auto angular_speed = estimator.update(sector->header.stamp, sector->angle_start);
+      auto angular_speed = estimators[m.getTopic()].update(sector->header.stamp, sector->angle_start);
       double scan_time = 0.0;
       if(angular_speed != 0.0)
         scan_time = 2*M_PI/fabs(angular_speed);
