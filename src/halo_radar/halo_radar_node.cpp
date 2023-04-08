@@ -11,16 +11,16 @@
 
 class RosRadar : public halo_radar::Radar
 {
- public:
+public:
   RosRadar(halo_radar::AddressSet const &addresses) : halo_radar::Radar(addresses)
   {
     ros::NodeHandle n;
-    m_data_pub = n.advertise<marine_sensor_msgs::RadarSector>("radar/" + addresses.label + "/data", 10);
-    m_state_pub = n.advertise<marine_radar_control_msgs::RadarControlSet>("radar/" + addresses.label + "/state", 10);
+    m_data_pub = n.advertise<marine_sensor_msgs::RadarSector>(addresses.label + "/data", 10);
+    m_state_pub = n.advertise<marine_radar_control_msgs::RadarControlSet>(addresses.label + "/state", 10);
     m_state_change_sub =
-        n.subscribe("radar/" + addresses.label + "/change_state", 10, &RosRadar::stateChangeCallback, this);
+        n.subscribe(addresses.label + "/change_state", 10, &RosRadar::stateChangeCallback, this);
     m_heartbeatTimer = n.createTimer(ros::Duration(1.0), &RosRadar::hbTimerCallback, this);
-    m_rangeCorrectionFactor = n.param("range_correction_factor", m_rangeCorrectionFactor);
+    m_rangeCorrectionFactor = n.param("~range_correction_factor", m_rangeCorrectionFactor);
     ros::param::param<std::string>("~frameId", m_frame_id, m_frame_id);
 
     startThreads();
