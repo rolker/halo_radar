@@ -20,7 +20,7 @@ public:
     m_state_change_sub =
         n.subscribe(addresses.label + "/change_state", 10, &RosRadar::stateChangeCallback, this);
     m_heartbeatTimer = n.createTimer(ros::Duration(1.0), &RosRadar::hbTimerCallback, this);
-    m_rangeCorrectionFactor = n.param("~range_correction_factor", m_rangeCorrectionFactor);
+    ros::param::param<double>("~range_correction_factor", m_rangeCorrectionFactor, m_rangeCorrectionFactor);
     ros::param::param<std::string>("~frameId", m_frame_id, m_frame_id);
 
     startThreads();
