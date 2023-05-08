@@ -2,7 +2,7 @@
 <package format="2">
   <name>halo_radar</name>
   <version>0.0.0</version>
-  <description>The halo_radar package</description>
+  <description>Driver for the Halo series of marine radars</description>
 
   <maintainer email="roland@ccom.unh.edu">Roland Arsenault</maintainer>
 

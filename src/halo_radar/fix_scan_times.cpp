@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
 {
   if(argc != 3)
   {
-    std::cout << "Usage: marine_radar_fix_scan_time in.bag out.bag\n";
+    std::cout << "Usage: fix_scan_time in.bag out.bag\n";
     exit(-1);
   }
 
